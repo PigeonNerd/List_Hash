@@ -17,7 +17,7 @@ public:
 
 	// void erase(T key);
 	bool contains(T key);
-	// C evict_eldest();
+	C evict_eldest();
 	C getByIndex(int index);
 	C getByKey(T key);
 private:
@@ -130,11 +130,21 @@ C listMap<T, C>::getByKey(T key) {
 	 return it->second->second;
 }
 
+/*
+	evict an item from the tail of the list
+*/
+template <class T, class C>
+C listMap<T, C>::evict_eldest() {
+	typename list< pair<T, C> >::iterator it;
+	it = orderedList.back();
+	orderedList.pop_back();
+	lookupMap.erase(it);
+	return it->second;
+}
 
 /*
 	this is for test purpose
 */
-
 template <class T, class C>
 C listMap<T, C>::getByIndex(int index) {
 	class list< pair<T, C> >::iterator it;
@@ -155,16 +165,4 @@ C listMap<T, C>::getByIndex(int index) {
 // 	lookupMap.erase(key);
 // 	delete value;
 // }
-
-// // right now, it is assumed that the list contains T 
-// template <class T, class C>
-// C listMap<T, C>::evict_eldest() {
-// 	C ret = orderedList.front();
-// 	lookupMap.erase(ret);
-// 	orderedList.pop_front();
-// 	return ret;
-// }
-
-
-
 #endif
