@@ -20,15 +20,19 @@ int main() {
 		cout<< asctime(localtime(&now)) << endl;
 		cache_element ca(now, i);
 		ss << i;
-		myMap.orderedInsert(ss.str(), ca);
+		myMap.addToTail(ss.str(), ca);
 		ss.str("");
 		sleep(2);
 	}
 
 	for(int i = 0; i < 20 ; i ++) {
-		cache_element tmp = myMap.get(i);
-		cout<< tmp.get_access()<< " " << tmp.get_size()<<endl;
+		string p = myMap.getByIndex(i);
+		cout<< P << endl;
 	}
+
+
+
+
 
 
 	printf("It is ok \n");

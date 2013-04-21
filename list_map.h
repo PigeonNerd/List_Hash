@@ -16,10 +16,12 @@ public:
 	void addToTail(T key, C& value);
 	void erase(T key);
 	bool contains(T key);
-	C get(int index);
+	C evict_eldest();
+	T getByIndex(int index);
+	T getByKey(T key);
 private:
 	map<T, C>lookupMap;
-	list<C>orderedList;
+	list<T>orderedList;
 };
 
 
@@ -63,7 +65,7 @@ void listMap<T, C>::orderedInsert(T key, C& value) {
 template <class T, class C>
 void listMap<T, C>::addToFront(T key, C& value) {
 	lookupMap[key] = value;
-	orderedList.push_front( value );
+	orderedList.push_front( key );
 }
 
 /*
@@ -72,7 +74,7 @@ void listMap<T, C>::addToFront(T key, C& value) {
 template <class T, class C>
 void listMap<T, C>::addToTail(T key, C& value) {
 	lookupMap[key] = value;
-	orderedList.push_back( value );
+	orderedList.push_back( key );
 }
 
 /*
@@ -97,13 +99,28 @@ bool listMap<T, C>::contains(T key) {
 	return false;
 }
 
+// right now, it is assumed that the list contains T 
 template <class T, class C>
-C listMap<T, C>::get(int index) {
-	class list<C>::iterator it;
+C listMap<T, C>::evict_eldest() {
+	C ret = orderedList.front();
+	lookupMap.erase(ret);
+	orderedList.pop_front();
+	return ret;
+}
+
+template <class T, class C>
+T listMap<T, C>::getByIndex(int index) {
+	class list<T>::iterator it;
 	it = orderedList.begin();
 	for(int i = 0 ; i < index; i ++) {
 		it ++;
 	}
 	return *it;
+}
+
+template <class T, class C>
+T listMap<T, C>::getByKey(T key) {
+	
+	return lookupMap[key];
 }
 #endif
