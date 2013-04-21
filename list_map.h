@@ -11,20 +11,21 @@ class listMap{
 public:
 	listMap();
 	~listMap();
-	void orderedInsert(T key, C& value);
-	void addToFront(T key, C& value);
-	void addToTail(T key, C& value);
-	void erase(T key);
+	void addToFront(const T& key, const C& value);
+	void addToTail(const T& key, const C& value);
+	void orderedAdd(const T& key, C& value);
+
+	// void erase(T key);
 	bool contains(T key);
-	C evict_eldest();
-	T getByIndex(int index);
-	T getByKey(T key);
+	// C evict_eldest();
+	C getByIndex(int index);
+	C getByKey(T key);
 private:
-	map<T, C>lookupMap;
-	list<T>orderedList;
+	list< pair<T, C> > orderedList;
+	map< T, typename list< pair<T, C> >::iterator >lookupMap;
+	typename list< pair<T, C> >::iterator findPosition(C& value);
+	
 };
-
-
 #define DEFAULT_SIZE 100
 
 /*
@@ -38,54 +39,70 @@ listMap<T, C>::listMap() {}
 */
 template < class T, class C >
 listMap<T, C>::~listMap() {
-	lookupMap.clear();
-	orderedList.clear();
-}
-
-/*
-	insert item as pre-defined order
-*/
-template <class T, class C>
-void listMap<T, C>::orderedInsert(T key, C& value) {
-	lookupMap[key] = value;
-	class list <C>::iterator it;
-	for (it = orderedList.begin(); it != orderedList.end(); it++ ) {
-		// the operator is defined in C class
-		if( value > (*it)) {
-			orderedList.insert(it, value);
-			break;
-		}
-	}
-	orderedList.push_back( value );
+	// lookupMap.clear();
+	// orderedList.clear();
 }
 
 /*
 	add item to the fron of the list	
 */
-template <class T, class C>
-void listMap<T, C>::addToFront(T key, C& value) {
-	lookupMap[key] = value;
-	orderedList.push_front( key );
+template < class T, class C >
+void listMap<T, C>:: addToFront(const T& key, const C& value) {
+	class map< T, typename list< pair<T, C> >::iterator >:: iterator it;
+	it = lookupMap.find(key);
+	if( it != lookupMap.end()) {
+		orderedList.erase(it->second);
+		lookupMap.erase(it);
+	}
+	orderedList.push_front(make_pair(key, value));
+	lookupMap.insert(make_pair(key, orderedList.begin())); 
 }
 
 /*
 	add item to the tail of the list	
 */
-template <class T, class C>
-void listMap<T, C>::addToTail(T key, C& value) {
-	lookupMap[key] = value;
-	orderedList.push_back( key );
+template < class T, class C >
+void listMap<T, C>:: addToTail(const T& key, const C& value) {
+	class map< T, typename list< pair<T, C> >::iterator >:: iterator it;
+	it = lookupMap.find(key);
+	if( it != lookupMap.end()) {
+		orderedList.erase(it->second);
+		lookupMap.erase(it);
+	}
+	orderedList.push_back(make_pair(key, value));
+	lookupMap.insert(make_pair(key, --orderedList.end())); 
 }
 
 /*
-	erase item
+	find correct position to put/re-put item
+	based user define ">"
 */
 template <class T, class C>
-void listMap<T, C>::erase(T key) {
-	// need to deal with the list
-	C value = lookupMap[key];
-	lookupMap.erase(key);
-	delete value;
+typename list< pair<T, C> >::iterator listMap<T, C>::findPosition(C& value) {
+	typename list< pair<T, C> >::iterator it;
+	for(it = orderedList.begin(); it != orderedList.end(); it++) {
+		if( value > it->second) {
+			return it;
+		}
+	}
+	return orderedList.begin();
+}
+
+/*
+	add item to the pre-defined position
+*/
+template < class T, class C >
+void listMap<T, C>:: orderedAdd(const T& key, C& value) {
+	class map< T, typename list< pair<T, C> >::iterator >:: iterator it;
+	it = lookupMap.find(key);
+	if( it != lookupMap.end()) {
+		orderedList.erase(it->second);
+		lookupMap.erase(it);
+	}
+	typename list< pair<T, C> >::iterator it2;
+	it2 = findPosition(value);
+	it2 = orderedList.insert(it2, make_pair(key, value));
+	lookupMap.insert(make_pair(key, it2));
 }
 
 /*
@@ -99,28 +116,55 @@ bool listMap<T, C>::contains(T key) {
 	return false;
 }
 
-// right now, it is assumed that the list contains T 
+/*
+	get item by its key, and put it to the 
+	front of the list
+*/
 template <class T, class C>
-C listMap<T, C>::evict_eldest() {
-	C ret = orderedList.front();
-	lookupMap.erase(ret);
-	orderedList.pop_front();
-	return ret;
+C listMap<T, C>::getByKey(T key) {
+	class map< T, typename list< pair<T, C> >::iterator >:: iterator it;
+	it = lookupMap.find(key);
+
+	// here need to somehow reset the timestamp ?
+	orderedList.splice( orderedList.begin(), orderedList, it->second);
+	 return it->second->second;
 }
 
+
+/*
+	this is for test purpose
+*/
+
 template <class T, class C>
-T listMap<T, C>::getByIndex(int index) {
-	class list<T>::iterator it;
+C listMap<T, C>::getByIndex(int index) {
+	class list< pair<T, C> >::iterator it;
 	it = orderedList.begin();
 	for(int i = 0 ; i < index; i ++) {
 		it ++;
 	}
-	return *it;
+	return it->second;
 }
 
-template <class T, class C>
-T listMap<T, C>::getByKey(T key) {
-	
-	return lookupMap[key];
-}
+// /*
+// 	erase item
+// */
+// template <class T, class C>
+// void listMap<T, C>::erase(T key) {
+// 	// need to deal with the list
+// 	C value = lookupMap[key];
+// 	lookupMap.erase(key);
+// 	delete value;
+// }
+
+// // right now, it is assumed that the list contains T 
+// template <class T, class C>
+// C listMap<T, C>::evict_eldest() {
+// 	C ret = orderedList.front();
+// 	lookupMap.erase(ret);
+// 	orderedList.pop_front();
+// 	return ret;
+// }
+
+
+
 #endif

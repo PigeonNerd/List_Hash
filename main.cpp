@@ -13,28 +13,26 @@ using namespace std;
 int main() {
 	stringstream ss;
 	time_t now;
-	listMap < string, cache_element> myMap;
+	time(&now);
 
-	for(int i = 20; i >= 0 ; i --) {
-		time(&now);
-		cout<< asctime(localtime(&now)) << endl;
-		cache_element ca(now, i);
+	listMap<string, cache_element> myMap;
+
+	for(int i = 0 ; i < 20; i ++) {
 		ss << i;
-		myMap.addToTail(ss.str(), ca);
+		time(&now);
+		cache_element ca( now, i);
+		myMap.orderedAdd(ss.str(), ca);
 		ss.str("");
 		sleep(2);
 	}
 
+
 	for(int i = 0; i < 20 ; i ++) {
-		string p = myMap.getByIndex(i);
-		cout<< P << endl;
+
+		cache_element ca2 = myMap.getByIndex(i);
+		cout << "time: "<< ca2.get_access() << ", " << ca2.get_size() << endl;
 	}
 
 
-
-
-
-
-	printf("It is ok \n");
 	return 0;
 }

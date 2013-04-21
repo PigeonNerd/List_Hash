@@ -53,6 +53,8 @@ bool cache_element::operator > (cache_element e) {
 		return true;
 	} 
 	else if( size > e.get_size()) {
+		return false;
+	} else {
 		return true;
 	}
 	return false;
